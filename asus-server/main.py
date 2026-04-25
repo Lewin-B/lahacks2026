@@ -114,5 +114,29 @@ async def drip_hub_inference(
         accumulated_metrics["total_inferences"] += 1
 
         return response.json()
+
+# Background task to persist metrics every minute
+async def persist_metrics_loop():
+    while True:
+        await asyncio.sleep(60)
+        await metrics_collection.replace_one(
+            {"_id": "global"},
+            {**accumulated_metrics, "last_updated": datetime.utcnow()},
+            upsert=True
+        )
+
+@app.on_event("startup")
+async def startup():
+    # Load metrics from DB if exists
+    stored = await metrics_collection.find_one({"_id": "global"})
+    if stored:
+        accumulated_metrics.update({
+            "total_water_produced_g": stored.get("total_water_produced_g", 0),
+            "total_inferences": stored.get("total_inferences", 0),
+            "start_time": stored.get("start_time", datetime.utcnow())
+        })
+
+    asyncio.create_task(persist_metrics_loop())
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5000)
