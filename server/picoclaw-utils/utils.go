@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"path/filepath"
@@ -86,6 +87,9 @@ func deployWithClient(ctx context.Context, apiClient dockerClient, input Options
 	if err != nil {
 		return Result{}, err
 	}
+	if opts, err = moveToAvailablePorts(opts); err != nil {
+		return Result{}, err
+	}
 
 	absDataDir, err := resolveDataDir(opts.DataDir)
 	if err != nil {
@@ -136,14 +140,9 @@ func deployWithClient(ctx context.Context, apiClient dockerClient, input Options
 		}
 	}
 
-	createOptions, err := buildContainerCreateOptions(opts, absDataDir)
+	createResult, err := createContainerWithAvailablePorts(ctx, apiClient, opts, absDataDir, &result)
 	if err != nil {
 		return Result{}, err
-	}
-
-	createResult, err := apiClient.ContainerCreate(ctx, createOptions)
-	if err != nil {
-		return Result{}, fmt.Errorf("create container %q: %w", opts.Name, err)
 	}
 	if _, err := apiClient.ContainerStart(ctx, createResult.ID, client.ContainerStartOptions{}); err != nil {
 		return Result{}, fmt.Errorf("start container %q: %w", opts.Name, err)
@@ -240,6 +239,96 @@ func normalizePort(flagName string, current, fallback int, applyFallback bool) (
 		return 0, fmt.Errorf("%s must be between 1 and 65535", flagName)
 	}
 	return current, nil
+}
+
+func moveToAvailablePorts(opts Options) (Options, error) {
+	reserved := map[int]struct{}{}
+
+	gatewayPort, err := nextAvailablePort(opts.GatewayPort, reserved)
+	if err != nil {
+		return Options{}, fmt.Errorf("find available gateway port from %d: %w", opts.GatewayPort, err)
+	}
+	opts.GatewayPort = gatewayPort
+	reserved[gatewayPort] = struct{}{}
+
+	if opts.Mode == ModeLauncher {
+		launcherPort, err := nextAvailablePort(opts.LauncherPort, reserved)
+		if err != nil {
+			return Options{}, fmt.Errorf("find available launcher port from %d: %w", opts.LauncherPort, err)
+		}
+		opts.LauncherPort = launcherPort
+	}
+
+	return opts, nil
+}
+
+func nextAvailablePort(start int, reserved map[int]struct{}) (int, error) {
+	for port := start; port <= 65535; port++ {
+		if _, ok := reserved[port]; ok {
+			continue
+		}
+		if portAvailable(port) {
+			return port, nil
+		}
+	}
+	return 0, errors.New("no available port found")
+}
+
+func portAvailable(port int) bool {
+	listener, err := net.Listen("tcp4", ":"+strconv.Itoa(port))
+	if err != nil {
+		return false
+	}
+	if err := listener.Close(); err != nil {
+		return false
+	}
+	return true
+}
+
+func nextPortOptions(opts Options) Options {
+	if opts.GatewayPort < 65535 {
+		opts.GatewayPort++
+	}
+	if opts.Mode == ModeLauncher && opts.LauncherPort < 65535 {
+		opts.LauncherPort++
+	}
+	return opts
+}
+
+func isPortAllocationError(err error) bool {
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "port is already allocated") ||
+		strings.Contains(message, "bind: address already in use")
+}
+
+func createContainerWithAvailablePorts(ctx context.Context, apiClient dockerClient, opts Options, absDataDir string, result *Result) (client.ContainerCreateResult, error) {
+	const maxPortAllocationAttempts = 10
+
+	var lastErr error
+	for attempt := 0; attempt < maxPortAllocationAttempts; attempt++ {
+		createOptions, err := buildContainerCreateOptions(opts, absDataDir)
+		if err != nil {
+			return client.ContainerCreateResult{}, err
+		}
+
+		createResult, err := apiClient.ContainerCreate(ctx, createOptions)
+		if err == nil {
+			return createResult, nil
+		}
+		if !isPortAllocationError(err) {
+			return client.ContainerCreateResult{}, fmt.Errorf("create container %q: %w", opts.Name, err)
+		}
+
+		lastErr = err
+		opts, err = moveToAvailablePorts(nextPortOptions(opts))
+		if err != nil {
+			return client.ContainerCreateResult{}, err
+		}
+		result.Options = opts
+		result.DockerArgs = BuildDockerArgs(opts, absDataDir)
+	}
+
+	return client.ContainerCreateResult{}, fmt.Errorf("create container %q after moving ports: %w", opts.Name, lastErr)
 }
 
 func resolveDataDir(dataDir string) (string, error) {
