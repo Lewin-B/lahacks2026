@@ -19,3 +19,12 @@ metrics_collection = db.metrics
 
 # vLLM endpoint
 VLLM_URL = "http://localhost:8000/v1/chat/completions"
+
+# In-memory state
+telemetry_buffer = deque(maxlen=100)  # Last 100 readings for charts
+active_websockets = []
+accumulated_metrics = {
+    "total_water_produced_g": 0.0,
+    "total_inferences": 0,
+    "start_time": datetime.utcnow()
+}
