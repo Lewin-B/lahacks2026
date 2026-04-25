@@ -30,6 +30,7 @@ def calculate_water_vapor_pressure(temp_celsius):
     log_P = 8.07131 - (1730.63 / (233.426 + T))
     P = 10 ** log_P
     return P
+
 def estimate_water_production_rate(hot_temp, cold_temp=25.0, membrane_coeff=0.01):
     """
     Simplified water production estimate
