@@ -30,3 +30,15 @@ def calculate_water_vapor_pressure(temp_celsius):
     log_P = 8.07131 - (1730.63 / (233.426 + T))
     P = 10 ** log_P
     return P
+def estimate_water_production_rate(hot_temp, cold_temp=25.0, membrane_coeff=0.01):
+    """
+    Simplified water production estimate
+    J_w = C * (P_hot - P_cold)
+
+    membrane_coeff is a tunable parameter (kg/hr/mmHg)
+    Returns water production in kg/hr
+    """
+    P_hot = calculate_water_vapor_pressure(hot_temp)
+    P_cold = calculate_water_vapor_pressure(cold_temp)
+    J_w = membrane_coeff * (P_hot - P_cold)
+    return max(0, J_w)
