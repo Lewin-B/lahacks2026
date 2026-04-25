@@ -19,6 +19,8 @@ metrics_collection = db.metrics
 
 # vLLM endpoint
 VLLM_URL = "http://localhost:8000/v1/chat/completions"
+# Gemma 4 model - easily configurable via environment variable
+GEMMA_MODEL = os.getenv("GEMMA_MODEL", "google/gemma-4-31B-it")
 
 # In-memory state
 telemetry_buffer = deque(maxlen=100)  # Last 100 readings for charts
