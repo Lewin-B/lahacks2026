@@ -1,3 +1,4 @@
 picoclaw-data/
 **/.env
 .venv
+!**/.env.example
