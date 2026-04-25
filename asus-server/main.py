@@ -40,6 +40,9 @@ class AgentInfo(BaseModel):
 async def websocket_telemetry(websocket: WebSocket):
 @app.post("/agents/register")
 async def register_agent(agent: AgentInfo):
+    """Register newly deployed agent"""
+    await agents_collection.insert_one(agent.dict())
+    return {"status": "registered"}
 @app.get("/agents")
 async def list_agents():
 @app.get("/telemetry/buffer")
