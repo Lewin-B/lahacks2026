@@ -94,5 +94,25 @@ async def get_metrics():
 
 @app.post("/inference/drip-hub")
 async def drip_hub_inference(
+    messages: list,
+    x_drip_agent_id: str = Header(None)
+):
+    """Proxy to vLLM with agent attribution"""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            VLLM_URL,
+            json={
+                "model": "google/gemma-2-9b-it",
+                "messages": messages,
+                "temperature": 0.7
+            },
+            headers={"X-Drip-Agent-ID": x_drip_agent_id},
+            timeout=120.0
+        )
+
+        # Increment inference counter
+        accumulated_metrics["total_inferences"] += 1
+
+        return response.json()
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5000)
