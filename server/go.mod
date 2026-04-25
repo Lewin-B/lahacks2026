@@ -1,12 +1,13 @@
 module server
 
-go 1.24
+go 1.24.0
 
 require (
 	github.com/containerd/errdefs v1.0.0
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/moby/moby/api v1.54.2
 	github.com/moby/moby/client v0.4.1
+	golang.ngrok.com/ngrok/v2 v2.1.0
 )
 
 require (
@@ -18,6 +19,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
@@ -26,5 +28,9 @@ require (
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	golang.ngrok.com/muxado/v2 v2.0.1 // indirect
+	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
