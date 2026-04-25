@@ -28,3 +28,15 @@ accumulated_metrics = {
     "total_inferences": 0,
     "start_time": datetime.utcnow()
 }
+@app.websocket("/ws/telemetry")
+async def websocket_telemetry(websocket: WebSocket):
+@app.post("/agents/register")
+async def register_agent(agent: AgentInfo):
+@app.get("/agents")
+async def list_agents():
+@app.get("/telemetry/buffer")
+async def get_telemetry_buffer():
+@app.get("/metrics")
+async def get_metrics():
+@app.post("/inference/drip-hub")
+async def drip_hub_inference(
