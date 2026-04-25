@@ -7,3 +7,5 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import uvicorn
 import asyncio
 from collections import deque
+
+app = FastAPI()
