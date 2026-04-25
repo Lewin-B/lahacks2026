@@ -16,3 +16,6 @@ mongo_client = AsyncIOMotorClient(MONGODB_URI)
 db = mongo_client.drip
 agents_collection = db.agents
 metrics_collection = db.metrics
+
+# vLLM endpoint
+VLLM_URL = "http://localhost:8000/v1/chat/completions"
