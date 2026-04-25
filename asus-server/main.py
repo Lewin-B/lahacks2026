@@ -52,6 +52,8 @@ async def list_agents():
 
 @app.get("/telemetry/buffer")
 async def get_telemetry_buffer():
+    """Get recent telemetry from in-memory buffer"""
+    return list(telemetry_buffer)
 @app.get("/metrics")
 async def get_metrics():
 @app.post("/inference/drip-hub")
