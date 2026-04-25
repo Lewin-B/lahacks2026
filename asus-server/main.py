@@ -2,23 +2,25 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Header
 from pydantic import BaseModel
 import httpx
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.server_api import ServerApi
 import uvicorn
 import asyncio
 from collections import deque
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-app = FastAPI()
-
 # MongoDB setup (for agent registry and metrics only)
 MONGODB_URI = os.getenv("MONGODB_URI")
 if not MONGODB_URI:
     raise ValueError("MONGODB_URI environment variable is required. Copy .env.example to .env and set your MongoDB connection string.")
-mongo_client = AsyncIOMotorClient(MONGODB_URI)
+
+# Create MongoDB client with ServerApi for proper SSL connection
+mongo_client = AsyncIOMotorClient(MONGODB_URI, server_api=ServerApi('1'))
 db = mongo_client.drip
 agents_collection = db.agents
 metrics_collection = db.metrics
@@ -34,8 +36,41 @@ active_websockets = []
 accumulated_metrics = {
     "total_water_produced_g": 0.0,
     "total_inferences": 0,
-    "start_time": datetime.utcnow()
+    "start_time": datetime.now(UTC)
 }
+
+# Background task to persist metrics every minute
+async def persist_metrics_loop():
+    while True:
+        await asyncio.sleep(60)
+        await metrics_collection.replace_one(
+            {"_id": "global"},
+            {**accumulated_metrics, "last_updated": datetime.now(UTC)},
+            upsert=True
+        )
+
+# Lifespan context manager for startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Load metrics from DB if exists
+    stored = await metrics_collection.find_one({"_id": "global"})
+    if stored:
+        accumulated_metrics.update({
+            "total_water_produced_g": stored.get("total_water_produced_g", 0),
+            "total_inferences": stored.get("total_inferences", 0),
+            "start_time": stored.get("start_time", datetime.now(UTC))
+        })
+
+    # Start background task
+    task = asyncio.create_task(persist_metrics_loop())
+
+    yield
+
+    # Shutdown: Cancel background task
+    task.cancel()
+
+# Initialize FastAPI app with lifespan
+app = FastAPI(lifespan=lifespan)
 
 class AgentInfo(BaseModel):
     agent_id: str
@@ -93,7 +128,7 @@ async def get_telemetry_buffer():
 @app.get("/metrics")
 async def get_metrics():
     """Get accumulated metrics"""
-    uptime = (datetime.utcnow() - accumulated_metrics["start_time"]).total_seconds() / 3600
+    uptime = (datetime.now(UTC) - accumulated_metrics["start_time"]).total_seconds() / 3600
     return {
         "total_water_produced_g": round(accumulated_metrics["total_water_produced_g"], 2),
         "total_inferences": accumulated_metrics["total_inferences"],
@@ -122,29 +157,6 @@ async def drip_hub_inference(
         accumulated_metrics["total_inferences"] += 1
 
         return response.json()
-
-# Background task to persist metrics every minute
-async def persist_metrics_loop():
-    while True:
-        await asyncio.sleep(60)
-        await metrics_collection.replace_one(
-            {"_id": "global"},
-            {**accumulated_metrics, "last_updated": datetime.utcnow()},
-            upsert=True
-        )
-
-@app.on_event("startup")
-async def startup():
-    # Load metrics from DB if exists
-    stored = await metrics_collection.find_one({"_id": "global"})
-    if stored:
-        accumulated_metrics.update({
-            "total_water_produced_g": stored.get("total_water_produced_g", 0),
-            "total_inferences": stored.get("total_inferences", 0),
-            "start_time": stored.get("start_time", datetime.utcnow())
-        })
-
-    asyncio.create_task(persist_metrics_loop())
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5000)
