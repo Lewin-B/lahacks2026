@@ -20,3 +20,13 @@ def get_cpu_temp():
     temp_str = result.stdout.strip().split("=")[1].split("'")[0]
     return float(temp_str)
 
+def calculate_water_vapor_pressure(temp_celsius):
+    """
+    Antoine Equation for water vapor pressure
+    P = 10^(8.07131 - 1730.63/(233.426 + T))
+    Returns pressure in mmHg
+    """
+    T = temp_celsius
+    log_P = 8.07131 - (1730.63 / (233.426 + T))
+    P = 10 ** log_P
+    return P
