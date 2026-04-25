@@ -43,8 +43,13 @@ async def register_agent(agent: AgentInfo):
     """Register newly deployed agent"""
     await agents_collection.insert_one(agent.dict())
     return {"status": "registered"}
+
 @app.get("/agents")
 async def list_agents():
+    """List all deployed agents"""
+    agents = await agents_collection.find().to_list(100)
+    return agents
+
 @app.get("/telemetry/buffer")
 async def get_telemetry_buffer():
 @app.get("/metrics")
