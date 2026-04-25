@@ -9,12 +9,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"server/utils"
+	picoclawutils "server/picoclaw-utils"
 )
 
 type deployResponse struct {
-	Result utils.Result `json:"result,omitempty"`
-	Error  string       `json:"error,omitempty"`
+	Result picoclawutils.Result `json:"result,omitempty"`
+	Error  string               `json:"error,omitempty"`
 }
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 func deployHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var opts utils.Options
+	var opts picoclawutils.Options
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&opts); err != nil {
@@ -54,7 +54,7 @@ func deployHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := utils.Deploy(r.Context(), opts)
+	result, err := picoclawutils.Deploy(r.Context(), opts)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, deployResponse{
 			Error: err.Error(),
