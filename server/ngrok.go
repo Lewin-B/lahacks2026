@@ -22,6 +22,11 @@ type managedNgrokTunnel struct {
 	endpoint ngrok.EndpointForwarder
 }
 
+const (
+	ngrokURLEnv    = "NGROK_URL"
+	ngrokDomainEnv = "NGROK_DOMAIN"
+)
+
 func newNgrokTunnelManager() *ngrokTunnelManager {
 	return &ngrokTunnelManager{
 		tunnels: make(map[string]managedNgrokTunnel),
@@ -51,7 +56,7 @@ func (m *ngrokTunnelManager) Expose(ctx context.Context, key, upstreamURL string
 		return "", fmt.Errorf("create ngrok agent: %w", err)
 	}
 
-	endpoint, err := agent.Forward(ctx, ngrok.WithUpstream(upstreamURL))
+	endpoint, err := agent.Forward(ngrokTunnelContext(ctx), ngrok.WithUpstream(upstreamURL), ngrokEndpointOptions()...)
 	if err != nil {
 		_ = agent.Disconnect()
 		return "", fmt.Errorf("create ngrok tunnel for %q: %w", upstreamURL, err)
@@ -97,4 +102,34 @@ func closeNgrokTunnel(tunnel managedNgrokTunnel) {
 			log.Printf("disconnect ngrok agent: %v", err)
 		}
 	}
+}
+
+func ngrokEndpointOptions() []ngrok.EndpointOption {
+	endpointURL := ngrokEndpointURL()
+	if endpointURL == "" {
+		return nil
+	}
+	return []ngrok.EndpointOption{ngrok.WithURL(endpointURL)}
+}
+
+func ngrokTunnelContext(ctx context.Context) context.Context {
+	if ctx == nil {
+		return context.Background()
+	}
+	return context.WithoutCancel(ctx)
+}
+
+func ngrokEndpointURL() string {
+	if endpointURL := strings.TrimSpace(os.Getenv(ngrokURLEnv)); endpointURL != "" {
+		return endpointURL
+	}
+
+	domain := strings.TrimSpace(os.Getenv(ngrokDomainEnv))
+	if domain == "" {
+		return ""
+	}
+	if strings.Contains(domain, "://") {
+		return domain
+	}
+	return "https://" + domain
 }
