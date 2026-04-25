@@ -18,12 +18,17 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set MongoDB URI
-export MONGODB_URI="mongodb+srv://username:password@cluster.mongodb.net/drip"
+# Set up environment variables
+cp .env.example .env
+# Edit .env and set your MongoDB URI
 
 # Run server
 python main.py
 ```
+
+**Required Environment Variables** (in `.env`):
+- `MONGODB_URI`: MongoDB Atlas connection string
+- `GEMMA_MODEL`: (Optional) Gemma 4 model to use (defaults to `google/gemma-4-31B-it`)
 
 ## Endpoints
 

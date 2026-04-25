@@ -19,8 +19,9 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set ASUS WebSocket URL (replace with actual Tailscale IP)
-export ASUS_WS_URL="ws://100.x.x.x:5000/ws/telemetry"
+# Set up environment variables
+cp .env.example .env
+# Edit .env and set your ASUS Tailscale IP
 
 # Run monitoring script
 python thermal_monitor.py
@@ -31,7 +32,11 @@ nohup python thermal_monitor.py > thermal.log 2>&1 &
 
 ## Configuration
 
+**Required Environment Variables** (in `.env`):
 - `ASUS_WS_URL`: WebSocket URL of ASUS server (via Tailscale)
+  - Example: `ws://100.64.1.2:5000/ws/telemetry`
+
+**Script Parameters**:
 - Default interval: 5 seconds between readings
 - Membrane coefficient: 0.01 kg/hr/mmHg (adjustable in code)
 
