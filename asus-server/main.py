@@ -67,3 +67,5 @@ async def get_metrics():
 
 @app.post("/inference/drip-hub")
 async def drip_hub_inference(
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5000)
