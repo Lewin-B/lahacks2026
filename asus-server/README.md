@@ -34,16 +34,38 @@ python main.py
 - `POST /inference/drip-hub` - Proxy to vLLM for inference
 - `WS /ws/telemetry` - WebSocket for real-time telemetry streaming
 
-## vLLM Setup
+## vLLM Setup with Gemma 4
 
-In a separate terminal on the ASUS GX10:
+On the ASUS GX10, run vLLM via Docker with Gemma 4:
 
 ```bash
-pip install vllm
+# Gemma 4 31B (recommended for demos - best quality)
+sudo docker run -itd --name gemma4-31b \
+  --gpus all \
+  --ipc=host \
+  --rm \
+  -p 8000:8000 \
+  -v ~/.cache/huggingface:/root/.cache/huggingface \
+  -e HF_TOKEN=<YOUR_HF_TOKEN> \
+  -e VLLM_USE_V2_MODEL_RUNNER=1 \
+  vllm/vllm-openai:gemma4-cu130 \
+  google/gemma-4-31B-it \
+  --quantization nvfp4 \
+  --max-model-len 32768 \
+  --host 0.0.0.0
 
-vllm serve google/gemma-2-9b-it \
-  --host 0.0.0.0 \
-  --port 8000 \
-  --dtype auto \
-  --api-key drip-internal-key
+# Alternative: Gemma 4 9B (faster, lower memory)
+# Change "google/gemma-4-31B-it" to "google/gemma-4-9B-it"
+```
+
+**To change models**: Set the `GEMMA_MODEL` environment variable before running the FastAPI server:
+
+```bash
+# For 31B (default)
+export GEMMA_MODEL="google/gemma-4-31B-it"
+
+# For 9B
+export GEMMA_MODEL="google/gemma-4-9B-it"
+
+python main.py
 ```
