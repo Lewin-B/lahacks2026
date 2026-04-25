@@ -54,7 +54,16 @@ async def list_agents():
 async def get_telemetry_buffer():
     """Get recent telemetry from in-memory buffer"""
     return list(telemetry_buffer)
+
 @app.get("/metrics")
 async def get_metrics():
+    """Get accumulated metrics"""
+    uptime = (datetime.utcnow() - accumulated_metrics["start_time"]).total_seconds() / 3600
+    return {
+        "total_water_produced_g": round(accumulated_metrics["total_water_produced_g"], 2),
+        "total_inferences": accumulated_metrics["total_inferences"],
+        "uptime_hours": round(uptime, 2)
+    }
+
 @app.post("/inference/drip-hub")
 async def drip_hub_inference(
