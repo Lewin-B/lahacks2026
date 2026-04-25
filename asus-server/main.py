@@ -28,6 +28,14 @@ accumulated_metrics = {
     "total_inferences": 0,
     "start_time": datetime.utcnow()
 }
+
+class AgentInfo(BaseModel):
+    agent_id: str
+    container_name: str
+    public_url: str
+    inference_backend: str
+    created_at: datetime
+
 @app.websocket("/ws/telemetry")
 async def websocket_telemetry(websocket: WebSocket):
 @app.post("/agents/register")
