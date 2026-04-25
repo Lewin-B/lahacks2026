@@ -7,11 +7,17 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import uvicorn
 import asyncio
 from collections import deque
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI()
 
 # MongoDB setup (for agent registry and metrics only)
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://...")
+MONGODB_URI = os.getenv("MONGODB_URI")
+if not MONGODB_URI:
+    raise ValueError("MONGODB_URI environment variable is required. Copy .env.example to .env and set your MongoDB connection string.")
 mongo_client = AsyncIOMotorClient(MONGODB_URI)
 db = mongo_client.drip
 agents_collection = db.agents
