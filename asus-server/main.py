@@ -38,6 +38,33 @@ class AgentInfo(BaseModel):
 
 @app.websocket("/ws/telemetry")
 async def websocket_telemetry(websocket: WebSocket):
+    """WebSocket endpoint for streaming telemetry from Pi 5"""
+    await websocket.accept()
+    active_websockets.append(websocket)
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+
+            # Add to buffer for charts
+            telemetry_buffer.append(data)
+
+            # Accumulate water production
+            if "water_production_rate" in data:
+                # Convert kg/hr to grams, divide by 720 (5 sec intervals in 1 hour)
+                accumulated_metrics["total_water_produced_g"] += (data["water_production_rate"] * 1000) / 720
+
+            # Broadcast to all connected frontend clients
+            for ws in active_websockets:
+                if ws != websocket:
+                    try:
+                        await ws.send_json(data)
+                    except:
+                        pass
+
+    except WebSocketDisconnect:
+        active_websockets.remove(websocket)
+
 @app.post("/agents/register")
 async def register_agent(agent: AgentInfo):
     """Register newly deployed agent"""
