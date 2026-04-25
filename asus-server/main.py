@@ -104,7 +104,7 @@ async def drip_hub_inference(
         response = await client.post(
             VLLM_URL,
             json={
-                "model": "google/gemma-2-9b-it",
+                "model": GEMMA_MODEL,
                 "messages": messages,
                 "temperature": 0.7
             },
