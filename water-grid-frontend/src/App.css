@@ -1,0 +1,165 @@
+.app {
+  min-height: 100vh;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin: 0;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
+}
+
+.upload-section,
+.image-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+}
+
+.display-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.image-info {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: monospace;
+}
+
+.ai-prompts-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 1rem;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.prompts-intro {
+  margin: 0.5rem 0 1rem 0;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  font-size: 1rem;
+}
+
+.prompts-intro strong {
+  color: rgba(99, 102, 241, 1);
+}
+
+.prompts-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.prompts-list li {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  border-left: 3px solid rgba(99, 102, 241, 0.5);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  user-select: text;
+  cursor: pointer;
+  position: relative;
+}
+
+.prompts-list li:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: rgba(99, 102, 241, 0.8);
+  transform: translateX(4px);
+}
+
+@keyframes wipe-in-out {
+  0% {
+    clip-path: polygon(
+      0% 0%,
+      0% 100%, 
+      0% 100%,
+      0% 0%
+    );
+  }
+  15% {
+    clip-path: polygon(
+      0% 0%,
+      0% 100%, 
+      100% 100%,
+      100% 0%
+    );
+  }
+  85% {
+    clip-path: polygon(
+      0% 0%,
+      0% 100%, 
+      100% 100%,
+      100% 0%
+    );
+  }
+  100% {
+    clip-path: polygon(
+      100% 0%,
+      100% 100%, 
+      100% 100%,
+      100% 0%
+    );
+  }
+}
+
+.prompts-list li::after {
+  content: '✓ copied';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: green;
+  border-radius: 0.5rem;
+  visibility: hidden;
+  padding-top: 0.75em;
+  padding-left: 1em;
+  
+  /* without this it sometimes glitched at the end? */
+  clip-path: polygon(
+    0% 0%,
+    0% 100%, 
+    0% 100%,
+    0% 0%
+  );
+
+}
+
+.prompts-list li.clicked::after {
+  visibility: visible;
+  animation-duration: 1.5s;
+  animation-name: wipe-in-out;
+}

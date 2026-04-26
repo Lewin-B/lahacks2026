@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>water-grid-frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Cloudinary upload widget - load early so it's ready before React; avoids races with other components -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" async></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
