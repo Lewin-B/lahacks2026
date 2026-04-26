@@ -16,6 +16,25 @@ bun dev
 
 Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
 
+## Telemetry
+
+The deployments page opens a WebSocket for live thermal telemetry.
+
+By default it connects to the Go deploy server at:
+
+```bash
+ws://localhost:3000/telemetry
+```
+
+To use the ASUS telemetry hub instead, set:
+
+```bash
+DRIP_TELEMETRY_WS_URL=ws://100.x.x.x:5000/ws/telemetry?role=client
+```
+
+If `ASUS_WS_URL` is set without a `role`, the Next API will add `role=client`
+for browser connections.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/moby/moby/client"
+	"golang.org/x/net/websocket"
 
 	picoclawutils "server/picoclaw-utils"
 )
@@ -188,6 +189,10 @@ func main() {
 	r.Delete("/agents/{name}", deleteAgentHandler)
 	r.Get("/deployments", deploymentsHandler)
 	r.Delete("/deployments/{identifier}", deleteDeploymentHandler)
+	r.Handle("/telemetry", websocket.Server{
+		Handler:   telemetryWebsocketHandler,
+		Handshake: allowTelemetryWebsocketOrigin,
+	})
 	log.Printf("listening on http://%s", addr)
 	err := http.ListenAndServe(addr, r)
 

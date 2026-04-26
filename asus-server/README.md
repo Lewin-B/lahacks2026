@@ -3,6 +3,7 @@
 FastAPI server for the Drip Intelligence Hub running on ASUS GX10.
 
 ## Features
+
 - WebSocket endpoint for real-time telemetry streaming from Pi 5
 - Agent registry (MongoDB)
 - Accumulated metrics tracking (total water produced, inferences, uptime)
@@ -27,6 +28,7 @@ python main.py
 ```
 
 **Required Environment Variables** (in `.env`):
+
 - `MONGODB_URI`: MongoDB Atlas connection string
 - `GEMMA_MODEL`: (Optional) Ollama model to use (defaults to `gemma4:e4b-q4`)
 
@@ -36,8 +38,9 @@ python main.py
 - `GET /agents` - List all registered agents
 - `GET /telemetry/buffer` - Get last 100 telemetry readings
 - `GET /metrics` - Get accumulated metrics
-- `POST /inference/drip-hub` - Proxy to Ollama for inference
-- `WS /ws/telemetry` - WebSocket for real-time telemetry streaming
+- `POST /inference/drip-hub` - Proxy to vLLM for inference
+- `WS /ws/telemetry` - WebSocket for Pi telemetry producers
+- `WS /ws/telemetry?role=client` - WebSocket for frontend telemetry clients, including an initial snapshot
 
 ## Ollama Setup with Gemma 4 e4b Q4
 
@@ -59,12 +62,14 @@ ollama pull gemma4:e4b-it-q4_K_M
 ### 3. Run Ollama with Concurrent User Support
 
 **Easy way** (using startup script):
+
 ```bash
 cd ~/lahacks2026/asus-server
 ./start-ollama.sh
 ```
 
 **Manual way** (set environment variables):
+
 ```bash
 # Set environment variables for stable concurrent operation
 export OLLAMA_NUM_PARALLEL=2
@@ -76,12 +81,14 @@ ollama serve
 ```
 
 This will:
+
 - Load 2 parallel "slots" of the model into VRAM (~14.7 GiB total)
 - Handle 2 concurrent inference requests without crashes
 - Automatically queue additional requests (max queue: 512)
 - Use proven stable configuration for Gemma 4 e4b on Grace Blackwell
 
 **Why OLLAMA_NUM_PARALLEL=2?**
+
 - Higher values (4, 8, 16) cause CUDA assertion failures with Gemma 4 e4b's multimodal features
 - 2 concurrent users is the sweet spot: stable + 2x throughput
 - With 118 GiB VRAM available, memory is not the bottleneck—CUDA memory copy operations are
@@ -110,6 +117,7 @@ python main.py
 ```
 
 **Why Ollama over vLLM for Hackathons:**
+
 - Much more stable on ARM/SBSA (Grace Blackwell)
 - No C++ build errors or dependency nightmares
 - Quick setup (5 minutes vs 5 hours)
@@ -117,6 +125,7 @@ python main.py
 - Easy model management with `ollama pull/list/rm`
 
 **Performance Notes:**
+
 - Model loads in ~4 seconds after first run
 - Response generation: ~10-15 seconds for typical queries
 - Memory usage: 14.7 GiB (plenty of headroom with 118 GiB available)
