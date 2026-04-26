@@ -144,6 +144,10 @@ func deleteAgentHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func writeErrorJSON(w http.ResponseWriter, status int, message string) {
+	writeGenericJSON(w, status, map[string]string{"error": message})
+}
+
 func main() {
 	addr := "localhost:3000"
 	r := chi.NewRouter()
