@@ -525,6 +525,8 @@ func buildContainerCreateOptions(opts Options, absDataDir string) (client.Contai
 		case "gemma":
 			if opts.InferenceURL != "" {
 				env = append(env, "OPENAI_API_BASE="+opts.InferenceURL)
+				// Set a dummy API key for OpenAI-compatible endpoints that don't require auth
+				env = append(env, "OPENAI_API_KEY=sk-drip-local-gemma")
 			}
 		case "openai":
 			if opts.InferenceAPIKey != "" {
