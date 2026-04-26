@@ -173,7 +173,7 @@ func writeGenericJSON(w http.ResponseWriter, status int, payload any) {
 }
 
 func main() {
-	addr := "localhost:3000"
+	addr := "0.0.0.0:3000"
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
