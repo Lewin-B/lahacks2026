@@ -53,6 +53,45 @@ type agentStatusResponse struct {
 	Error   string `json:"error,omitempty"`
 }
 
+func listAgentsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	apiClient, err := client.New(client.FromEnv)
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer apiClient.Close()
+
+	containers, err := apiClient.ContainerList(ctx, client.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Filter for picoclaw containers
+	var picoclawContainers []map[string]interface{}
+	for _, container := range containers {
+		for _, name := range container.Names {
+			if strings.Contains(name, "picoclaw") {
+				picoclawContainers = append(picoclawContainers, map[string]interface{}{
+					"id":      container.ID,
+					"name":    strings.TrimPrefix(name, "/"),
+					"image":   container.Image,
+					"status":  container.Status,
+					"state":   container.State,
+					"created": container.Created,
+				})
+			}
+		}
+	}
+
+	writeGenericJSON(w, http.StatusOK, map[string]interface{}{
+		"agents": picoclawContainers,
+	})
+}
+
 func main() {
 	addr := "localhost:3000"
 	r := chi.NewRouter()
