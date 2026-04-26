@@ -40,17 +40,20 @@ const (
 )
 
 type Options struct {
-	Name           string
-	Mode           Mode
-	Image          string
-	DataDir        string
-	GatewayHost    string
-	GatewayPort    int
-	LauncherPort   int
-	DashboardToken string
-	Pull           bool
-	Replace        bool
-	PrintOnly      bool
+	Name              string
+	Mode              Mode
+	Image             string
+	DataDir           string
+	GatewayHost       string
+	GatewayPort       int
+	LauncherPort      int
+	DashboardToken    string
+	InferenceProvider string // "gemma", "openai", "google"
+	InferenceAPIKey   string // For OpenAI/Google
+	InferenceURL      string // For Gemma (ASUS server URL)
+	Pull              bool
+	Replace           bool
+	PrintOnly         bool
 }
 
 type Result struct {
