@@ -80,10 +80,23 @@ class AgentInfo(BaseModel):
     created_at: datetime
 
 @app.websocket("/ws/telemetry")
-async def websocket_telemetry(websocket: WebSocket):
-    """WebSocket endpoint for streaming telemetry from Pi 5"""
+async def websocket_telemetry(websocket: WebSocket, role: str = "producer"):
+    """WebSocket endpoint for Pi telemetry producers and frontend clients"""
     await websocket.accept()
-    active_websockets.append(websocket)
+
+    if role == "client":
+        active_websockets.append(websocket)
+        await websocket.send_json({
+            "type": "snapshot",
+            "readings": list(telemetry_buffer)
+        })
+
+        try:
+            while True:
+                await websocket.receive_text()
+        except WebSocketDisconnect:
+            remove_active_websocket(websocket)
+        return
 
     try:
         while True:
@@ -97,16 +110,29 @@ async def websocket_telemetry(websocket: WebSocket):
                 # Convert kg/hr to grams, divide by 720 (5 sec intervals in 1 hour)
                 accumulated_metrics["total_water_produced_g"] += (data["water_production_rate"] * 1000) / 720
 
-            # Broadcast to all connected frontend clients
-            for ws in active_websockets:
-                if ws != websocket:
-                    try:
-                        await ws.send_json(data)
-                    except:
-                        pass
+            await broadcast_telemetry(data)
 
     except WebSocketDisconnect:
+        pass
+
+async def broadcast_telemetry(data):
+    """Broadcast a telemetry reading to connected frontend clients"""
+    stale_websockets = []
+
+    for ws in active_websockets:
+        try:
+            await ws.send_json(data)
+        except Exception:
+            stale_websockets.append(ws)
+
+    for ws in stale_websockets:
+        remove_active_websocket(ws)
+
+def remove_active_websocket(websocket: WebSocket):
+    try:
         active_websockets.remove(websocket)
+    except ValueError:
+        pass
 
 @app.post("/agents/register")
 async def register_agent(agent: AgentInfo):
