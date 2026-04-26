@@ -1,0 +1,74 @@
+/* ============================================================
+   DRIP — Global Styles
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #00ffcc; }
+
+/* ---- Mapbox Search Box ----
+   The input lives inside a Shadow DOM so normal selectors can't reach it.
+   CSS custom properties DO bleed through — these match the theme variables
+   the SearchBox component reads internally. The JS fallback in MapSearchBar
+   handles -webkit-text-fill-color which CSS alone cannot override across
+   the shadow boundary.
+------------------------------------------------------------ */
+mapbox-search-box {
+  --color-text: #ffffff;
+  --color-text-placeholder: #888888;
+  --mapbox-search-color-text: #FFFFFF; 
+  color: #ffffff;
+}
+
+/* ---- Range input (load slider) ---- */
+input[type='range'] {
+  accent-color: #00ffcc;
+  cursor: pointer;
+}
+
+/* ---- Checkbox ---- */
+input[type='checkbox'] {
+  accent-color: #00ffcc;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+/* ---- Mapbox GL popup ---- */
+.mapboxgl-popup-content {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 1px solid #333 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: #1a1a1a !important;
+}
+
+.mapboxgl-popup-close-button {
+  color: #aaa !important;
+  font-size: 18px !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  color: #ffffff !important;
+  background: transparent !important;
+}

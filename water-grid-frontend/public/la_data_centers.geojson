@@ -1,0 +1,401 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.4630999,
+          34.0409085
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_0",
+        "operator": "Frontier",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2359144,
+          34.0584789
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_1",
+        "operator": "Coresite",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2353939,
+          34.0581039
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_2",
+        "operator": "United States Postal Service",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.1523314,
+          34.1155067
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_3",
+        "operator": "Distributed Edge Node",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2286497,
+          34.2173553
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_4",
+        "operator": "Distributed Edge Node",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2861853,
+          33.7393957
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_5",
+        "operator": "Distributed Edge Node",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3040815,
+          33.8507525
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_6",
+        "operator": "Equinix",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3862234,
+          33.9177276
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_7",
+        "operator": "Centurylink",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3864588,
+          33.9217415
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_8",
+        "operator": "Serverfarm Llc.",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3846186,
+          33.9156593
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_9",
+        "operator": "Digital Realty",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.4130377,
+          34.0602548
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_10",
+        "operator": "At&T",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.25751,
+          34.0473304
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_11",
+        "operator": "Drt Lax10",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2555409,
+          34.0478876
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_12",
+        "operator": "One Wilshire",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.1958086,
+          34.0331836
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_13",
+        "operator": "At&T",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3874199,
+          34.2118075
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_14",
+        "operator": "Distributed Edge Node",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.4564112,
+          34.1517306
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_15",
+        "operator": "Jms Mill Works",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.4785691,
+          34.0279786
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_16",
+        "operator": "Frontier",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.398381,
+          33.8876331
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_17",
+        "operator": "Frontier",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.1596825,
+          33.8906481
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_18",
+        "operator": "Distributed Edge Node",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.3437888,
+          34.1998691
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_19",
+        "operator": "Centurylink",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2560247,
+          34.1453615
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_20",
+        "operator": "Distributed Edge Node",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -118.2555689,
+          34.0479149
+        ]
+      },
+      "properties": {
+        "node_id": "pico_node_21",
+        "operator": "Distributed Edge Node",
+        "sqft": "2,500",
+        "status": "offline",
+        "current_load_kw": 0,
+        "water_generated_liters": 0
+      }
+    }
+  ]
+}
