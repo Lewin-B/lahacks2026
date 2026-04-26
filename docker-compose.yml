@@ -14,15 +14,5 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DRIP_SERVER_URL=http://backend:3000
-    depends_on:
-      - backend
-    restart: unless-stopped
-
-  backend:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+      - DRIP_SERVER_URL=http://localhost:3000
     restart: unless-stopped
