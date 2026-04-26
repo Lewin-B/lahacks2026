@@ -47,6 +47,12 @@ var (
 	exposePicoclaw = newNgrokTunnelManager().Expose
 )
 
+type agentStatusResponse struct {
+	Running bool   `json:"running"`
+	Status  string `json:"status"`
+	Error   string `json:"error,omitempty"`
+}
+
 func main() {
 	addr := "localhost:3000"
 	r := chi.NewRouter()
