@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -212,7 +213,8 @@ func applyDefaults(input Options) (Options, error) {
 	}
 
 	if opts.DataDir == "" {
-		opts.DataDir = defaultDataDir
+		// Use per-deployment data directories to avoid config conflicts
+		opts.DataDir = filepath.Join(defaultDataDir, opts.Name)
 	}
 	if opts.GatewayHost == "" {
 		opts.GatewayHost = defaultGatewayHost
@@ -352,7 +354,7 @@ func ensureDataDir(opts Options) (string, string, bool, error) {
 
 	configPath := filepath.Join(absDataDir, configFileName)
 	if _, err := os.Stat(configPath); err == nil {
-		rewritten, err := rewriteLegacyStarterConfig(configPath, opts.GatewayHost)
+		rewritten, err := rewriteLegacyStarterConfig(configPath, opts)
 		if err != nil {
 			return "", "", false, err
 		}
@@ -361,7 +363,7 @@ func ensureDataDir(opts Options) (string, string, bool, error) {
 		return "", "", false, fmt.Errorf("stat config %q: %w", configPath, err)
 	}
 
-	if err := os.WriteFile(configPath, defaultConfigJSON(opts.GatewayHost), 0o644); err != nil {
+	if err := os.WriteFile(configPath, defaultConfigJSON(opts), 0o644); err != nil {
 		return "", "", false, fmt.Errorf("write starter config %q: %w", configPath, err)
 	}
 
@@ -373,7 +375,7 @@ func ensureDataDir(opts Options) (string, string, bool, error) {
 	return absDataDir, configPath, true, nil
 }
 
-func rewriteLegacyStarterConfig(configPath, gatewayHost string) (bool, error) {
+func rewriteLegacyStarterConfig(configPath string, opts Options) (bool, error) {
 	content, err := os.ReadFile(configPath)
 	if err != nil {
 		return false, fmt.Errorf("read config %q: %w", configPath, err)
@@ -387,7 +389,7 @@ func rewriteLegacyStarterConfig(configPath, gatewayHost string) (bool, error) {
 		return false, nil
 	}
 
-	if err := os.WriteFile(configPath, defaultConfigJSON(gatewayHost), 0o644); err != nil {
+	if err := os.WriteFile(configPath, defaultConfigJSON(opts), 0o644); err != nil {
 		return false, fmt.Errorf("rewrite starter config %q: %w", configPath, err)
 	}
 	return true, nil
@@ -416,7 +418,7 @@ func legacyStarterConfigNeedsRewrite(content []byte) (bool, error) {
 	return providersIsArray, nil
 }
 
-func defaultConfigJSON(gatewayHost string) []byte {
+func defaultConfigJSON(opts Options) []byte {
 	type agentDefaultsConfig struct {
 		Workspace           string `json:"workspace"`
 		RestrictToWorkspace bool   `json:"restrict_to_workspace"`
@@ -434,11 +436,47 @@ func defaultConfigJSON(gatewayHost string) []byte {
 	type modelConfig struct {
 		ModelName string   `json:"model_name"`
 		Model     string   `json:"model"`
-		APIKeys   []string `json:"api_keys"`
+		APIKeys   []string `json:"api_keys,omitempty"`
+		APIBase   string   `json:"api_base,omitempty"`
 	}
 	type workspaceConfig struct {
 		Root string `json:"root"`
 	}
+
+	// Configure model based on inference provider
+	var modelName, model, apiBase string
+	var apiKeys []string
+
+	switch opts.InferenceProvider {
+	case "gemma":
+		modelName = "gemma4:e4b-it-q4_K_M"
+		model = "gemma4:e4b-it-q4_K_M"
+		// Extract base URL from inference URL (remove /inference/drip-hub path)
+		// e.g., http://100.89.241.84:5000/inference/drip-hub -> http://100.89.241.84:5000/v1
+		if opts.InferenceURL != "" {
+			// Parse URL to get scheme://host:port
+			if u, err := url.Parse(opts.InferenceURL); err == nil {
+				apiBase = fmt.Sprintf("%s://%s/v1", u.Scheme, u.Host)
+			}
+		}
+		apiKeys = []string{"sk-drip-local-gemma"}
+
+	case "openai":
+		modelName = "gpt-4"
+		model = "openai/gpt-4"
+		if opts.InferenceAPIKey != "" {
+			apiKeys = []string{opts.InferenceAPIKey}
+		} else {
+			apiKeys = []string{"sk-your-openai-key"}
+		}
+
+	default:
+		// Default to GPT-5.4 for backward compatibility
+		modelName = "gpt-5.4"
+		model = "openai/gpt-5.4"
+		apiKeys = []string{"sk-your-openai-key"}
+	}
+
 	payload := struct {
 		Version   int             `json:"version"`
 		Agents    agentsConfig    `json:"agents"`
@@ -451,20 +489,21 @@ func defaultConfigJSON(gatewayHost string) []byte {
 			Defaults: agentDefaultsConfig{
 				Workspace:           path.Join(containerDataDir, workspaceDirName),
 				RestrictToWorkspace: true,
-				ModelName:           "gpt-5.4",
+				ModelName:           modelName,
 				MaxTokens:           32768,
 				MaxToolIterations:   50,
 			},
 		},
 		Gateway: gatewayConfig{
-			Host: gatewayHost,
+			Host: opts.GatewayHost,
 			Port: defaultGatewayPort,
 		},
 		ModelList: []modelConfig{
 			{
-				ModelName: "gpt-5.4",
-				Model:     "openai/gpt-5.4",
-				APIKeys:   []string{"sk-your-openai-key"},
+				ModelName: modelName,
+				Model:     model,
+				APIKeys:   apiKeys,
+				APIBase:   apiBase,
 			},
 		},
 		Workspace: workspaceConfig{
