@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Header, Body
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Header
 from pydantic import BaseModel
 import httpx
 import os
@@ -83,6 +83,9 @@ class AgentInfo(BaseModel):
     inference_backend: str
     created_at: datetime
 
+class InferenceRequest(BaseModel):
+    messages: list
+
 @app.websocket("/ws/telemetry")
 async def websocket_telemetry(websocket: WebSocket):
     """WebSocket endpoint for streaming telemetry from Pi 5"""
@@ -141,7 +144,7 @@ async def get_metrics():
 
 @app.post("/inference/drip-hub")
 async def drip_hub_inference(
-    messages: list = Body(...),
+    request: InferenceRequest,
     x_drip_agent_id: str = Header(None)
 ):
     """Proxy to Ollama with agent attribution"""
@@ -150,7 +153,7 @@ async def drip_hub_inference(
             OLLAMA_URL,
             json={
                 "model": GEMMA_MODEL,
-                "messages": messages,
+                "messages": request.messages,
                 "temperature": 0.7
             },
             headers={"X-Drip-Agent-ID": x_drip_agent_id},
