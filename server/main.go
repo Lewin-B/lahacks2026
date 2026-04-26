@@ -119,6 +119,31 @@ func agentStatusHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func deleteAgentHandler(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	ctx := r.Context()
+
+	apiClient, err := client.New(client.FromEnv)
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer apiClient.Close()
+
+	_, err = apiClient.ContainerRemove(ctx, name, client.ContainerRemoveOptions{
+		Force: true,
+	})
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeGenericJSON(w, http.StatusOK, map[string]string{
+		"status": "deleted",
+		"name":   name,
+	})
+}
+
 func main() {
 	addr := "localhost:3000"
 	r := chi.NewRouter()
