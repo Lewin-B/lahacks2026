@@ -3,7 +3,7 @@ import Navbar from "./_components/navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "drip | Rain-fed AI compute",
+  title: "Drip | AI powered water creation",
   description: "AI compute that turns workload heat into clean water.",
 };
 

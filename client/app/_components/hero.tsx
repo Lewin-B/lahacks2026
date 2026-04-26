@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Droplet } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -48,12 +49,15 @@ export default function Hero() {
         </p>
 
         <Button
+          asChild
           size="lg"
           variant="secondary"
           className="mt-9 rounded-full bg-white text-[#06111f] shadow-lg shadow-cyan-950/25 hover:bg-cyan-50"
         >
-          Get started
-          <ArrowRight aria-hidden="true" data-icon="inline-end" />
+          <Link href="/compute">
+            Get started
+            <ArrowRight aria-hidden="true" data-icon="inline-end" />
+          </Link>
         </Button>
       </div>
     </section>

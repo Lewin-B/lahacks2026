@@ -3,6 +3,12 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export default function Navbar() {
+  const navItems = [
+    { label: "Compute", href: "/compute" },
+    { label: "Water", href: "/" },
+    { label: "Impact", href: "/" },
+  ];
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-5 py-5">
       <nav
@@ -36,20 +42,20 @@ export default function Navbar() {
 
         {/* Nav links */}
         <div className="hidden items-center md:flex">
-          {["Compute", "Water", "Impact"].map((item) => (
+          {navItems.map((item) => (
             <Link
-              key={item}
-              href="/"
+              key={item.label}
+              href={item.href}
               className="relative px-4 py-1.5 text-[13px] font-medium text-white/40 transition-colors duration-150 hover:text-white/80 outline-none focus-visible:text-white/80"
             >
-              {item}
+              {item.label}
             </Link>
           ))}
         </div>
 
         {/* CTA */}
         <Link
-          href="/"
+          href="/compute"
           className="group flex items-center gap-1.5 rounded-xl bg-sky-500/10 border border-sky-400/20 px-3.5 py-1.5 text-[13px] font-medium text-sky-300 transition-all duration-200 hover:bg-sky-500/20 hover:border-sky-400/30 hover:text-sky-200 outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40"
         >
           Get started
