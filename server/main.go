@@ -152,6 +152,9 @@ func main() {
 		w.Write([]byte("welcome"))
 	})
 	r.Post("/deploy", deployHandler)
+	r.Get("/agents", listAgentsHandler)
+	r.Get("/agents/{name}/status", agentStatusHandler)
+	r.Delete("/agents/{name}", deleteAgentHandler)
 	log.Printf("listening on http://%s", addr)
 	err := http.ListenAndServe(addr, r)
 
