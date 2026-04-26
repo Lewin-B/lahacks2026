@@ -58,21 +58,33 @@ ollama pull gemma4:e4b-it-q4_K_M
 
 ### 3. Run Ollama with Concurrent User Support
 
-For hackathon with multiple users, set `OLLAMA_NUM_PARALLEL` to handle concurrent requests:
-
+**Easy way** (using startup script):
 ```bash
-# Set environment variable for concurrent users (adjust based on VRAM)
-# Start with 8 for safety, can increase to 16-32 if you have headroom
-export OLLAMA_NUM_PARALLEL=8
+cd ~/lahacks2026/asus-server
+./start-ollama.sh
+```
+
+**Manual way** (set environment variables):
+```bash
+# Set environment variables for stable concurrent operation
+export OLLAMA_NUM_PARALLEL=2
+export OLLAMA_CONTEXT_LENGTH=131072
+export OLLAMA_MAX_LOADED_MODELS=1
 
 # Start Ollama server
 ollama serve
 ```
 
 This will:
-- Load multiple "slots" of the model into VRAM
-- Handle 8 concurrent inference requests
-- Automatically queue additional requests if all slots are busy
+- Load 2 parallel "slots" of the model into VRAM (~14.7 GiB total)
+- Handle 2 concurrent inference requests without crashes
+- Automatically queue additional requests (max queue: 512)
+- Use proven stable configuration for Gemma 4 e4b on Grace Blackwell
+
+**Why OLLAMA_NUM_PARALLEL=2?**
+- Higher values (4, 8, 16) cause CUDA assertion failures with Gemma 4 e4b's multimodal features
+- 2 concurrent users is the sweet spot: stable + 2x throughput
+- With 118 GiB VRAM available, memory is not the bottleneck—CUDA memory copy operations are
 
 ### 4. Test Ollama is Running
 
@@ -101,5 +113,10 @@ python main.py
 - Much more stable on ARM/SBSA (Grace Blackwell)
 - No C++ build errors or dependency nightmares
 - Quick setup (5 minutes vs 5 hours)
-- Good enough performance for demo with dozens of concurrent users
+- Handles 2 concurrent users reliably (additional users auto-queue)
 - Easy model management with `ollama pull/list/rm`
+
+**Performance Notes:**
+- Model loads in ~4 seconds after first run
+- Response generation: ~10-15 seconds for typical queries
+- Memory usage: 14.7 GiB (plenty of headroom with 118 GiB available)
