@@ -40,17 +40,20 @@ const (
 )
 
 type Options struct {
-	Name           string
-	Mode           Mode
-	Image          string
-	DataDir        string
-	GatewayHost    string
-	GatewayPort    int
-	LauncherPort   int
-	DashboardToken string
-	Pull           bool
-	Replace        bool
-	PrintOnly      bool
+	Name              string
+	Mode              Mode
+	Image             string
+	DataDir           string
+	GatewayHost       string
+	GatewayPort       int
+	LauncherPort      int
+	DashboardToken    string
+	InferenceProvider string // "gemma", "openai", "google"
+	InferenceAPIKey   string // For OpenAI/Google
+	InferenceURL      string // For Gemma (ASUS server URL)
+	Pull              bool
+	Replace           bool
+	PrintOnly         bool
 }
 
 type Result struct {
@@ -514,6 +517,24 @@ func buildContainerCreateOptions(opts Options, absDataDir string) (client.Contai
 	env := []string{"PICOCLAW_GATEWAY_HOST=" + opts.GatewayHost}
 	if opts.Mode == ModeLauncher && opts.DashboardToken != "" {
 		env = append(env, "PICOCLAW_LAUNCHER_TOKEN="+opts.DashboardToken)
+	}
+
+	// Add inference configuration based on provider
+	if opts.InferenceProvider != "" {
+		switch opts.InferenceProvider {
+		case "gemma":
+			if opts.InferenceURL != "" {
+				env = append(env, "OPENAI_API_BASE="+opts.InferenceURL)
+			}
+		case "openai":
+			if opts.InferenceAPIKey != "" {
+				env = append(env, "OPENAI_API_KEY="+opts.InferenceAPIKey)
+			}
+		case "google":
+			if opts.InferenceAPIKey != "" {
+				env = append(env, "GOOGLE_API_KEY="+opts.InferenceAPIKey)
+			}
+		}
 	}
 
 	return client.ContainerCreateOptions{

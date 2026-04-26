@@ -23,17 +23,20 @@ type deployRequest struct {
 
 	PicoclawURL string `json:"picoclaw_url"`
 
-	Name           *string             `json:"name,omitempty"`
-	Mode           *picoclawutils.Mode `json:"mode,omitempty"`
-	Image          *string             `json:"image,omitempty"`
-	DataDir        *string             `json:"data_dir,omitempty"`
-	GatewayHost    *string             `json:"gateway_host,omitempty"`
-	GatewayPort    *int                `json:"gateway_port,omitempty"`
-	LauncherPort   *int                `json:"launcher_port,omitempty"`
-	DashboardToken *string             `json:"dashboard_token,omitempty"`
-	Pull           *bool               `json:"pull,omitempty"`
-	Replace        *bool               `json:"replace,omitempty"`
-	PrintOnly      *bool               `json:"print_only,omitempty"`
+	Name              *string             `json:"name,omitempty"`
+	Mode              *picoclawutils.Mode `json:"mode,omitempty"`
+	Image             *string             `json:"image,omitempty"`
+	DataDir           *string             `json:"data_dir,omitempty"`
+	GatewayHost       *string             `json:"gateway_host,omitempty"`
+	GatewayPort       *int                `json:"gateway_port,omitempty"`
+	LauncherPort      *int                `json:"launcher_port,omitempty"`
+	DashboardToken    *string             `json:"dashboard_token,omitempty"`
+	InferenceProvider *string             `json:"inference_provider,omitempty"`
+	InferenceAPIKey   *string             `json:"inference_api_key,omitempty"`
+	InferenceURL      *string             `json:"inference_url,omitempty"`
+	Pull              *bool               `json:"pull,omitempty"`
+	Replace           *bool               `json:"replace,omitempty"`
+	PrintOnly         *bool               `json:"print_only,omitempty"`
 }
 
 type deployResponse struct {
@@ -174,7 +177,7 @@ func writeGenericJSON(w http.ResponseWriter, status int, payload any) {
 }
 
 func main() {
-	addr := "localhost:3000"
+	addr := "0.0.0.0:3000"
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -315,6 +318,15 @@ func (r deployRequest) options() picoclawutils.Options {
 	}
 	if r.DashboardToken != nil {
 		opts.DashboardToken = *r.DashboardToken
+	}
+	if r.InferenceProvider != nil {
+		opts.InferenceProvider = *r.InferenceProvider
+	}
+	if r.InferenceAPIKey != nil {
+		opts.InferenceAPIKey = *r.InferenceAPIKey
+	}
+	if r.InferenceURL != nil {
+		opts.InferenceURL = *r.InferenceURL
 	}
 	if r.Pull != nil {
 		opts.Pull = *r.Pull

@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Rocket,
   Server,
+  Cpu,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,9 @@ type DeployPayload = {
   gateway_port: number;
   launcher_port: number;
   dashboard_token: string;
+  inference_provider?: string;
+  inference_api_key?: string;
+  inference_url?: string;
   pull: boolean;
   replace: boolean;
   print_only: boolean;
@@ -119,6 +123,9 @@ export default function AgentConfigurator() {
   const [pullLatest, setPullLatest] = useState(true);
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [dryRun, setDryRun] = useState(false);
+  const [inferenceProvider, setInferenceProvider] = useState<string>("gemma");
+  const [inferenceAPIKey, setInferenceAPIKey] = useState("");
+  const [inferenceURL, setInferenceURL] = useState("http://100.89.241.84:5000/inference/drip-hub");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<SuccessState | null>(null);
@@ -183,7 +190,7 @@ export default function AgentConfigurator() {
       return null;
     }
 
-    return {
+    const basePayload: DeployPayload = {
       mode: "launcher",
       name: name.trim(),
       gateway_port: parsedGatewayPort,
@@ -193,6 +200,18 @@ export default function AgentConfigurator() {
       replace: replaceExisting,
       print_only: dryRun,
     };
+
+    // Add inference configuration if provider is selected
+    if (inferenceProvider) {
+      basePayload.inference_provider = inferenceProvider;
+      if (inferenceProvider === "gemma") {
+        basePayload.inference_url = inferenceURL;
+      } else if (inferenceAPIKey.trim()) {
+        basePayload.inference_api_key = inferenceAPIKey.trim();
+      }
+    }
+
+    return basePayload;
   }, [
     activeToken,
     dryRun,
@@ -202,6 +221,9 @@ export default function AgentConfigurator() {
     pullLatest,
     replaceExisting,
     validationErrors.length,
+    inferenceProvider,
+    inferenceAPIKey,
+    inferenceURL,
   ]);
 
   function applyProfile(profile: (typeof deploymentProfiles)[number]) {
@@ -464,6 +486,98 @@ export default function AgentConfigurator() {
         </section>
 
         <section className="rounded-[8px] border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-cyan-950/20 backdrop-blur-2xl">
+          <div className="flex items-center gap-2">
+            <Cpu aria-hidden="true" className="h-4 w-4 text-cyan-200" />
+            <h2 className="text-xl font-semibold text-white">
+              Inference backend
+            </h2>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <button
+              type="button"
+              onClick={() => {
+                setInferenceProvider("gemma");
+                setSuccess(null);
+              }}
+              className={cn(
+                "rounded-[8px] border px-4 py-3 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/35",
+                inferenceProvider === "gemma"
+                  ? "border-cyan-200/45 bg-cyan-300/10 text-cyan-50"
+                  : "border-white/10 bg-[#06111f]/45 text-cyan-50/60 hover:border-cyan-200/25"
+              )}
+            >
+              Gemma (Local)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setInferenceProvider("openai");
+                setSuccess(null);
+              }}
+              className={cn(
+                "rounded-[8px] border px-4 py-3 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/35",
+                inferenceProvider === "openai"
+                  ? "border-cyan-200/45 bg-cyan-300/10 text-cyan-50"
+                  : "border-white/10 bg-[#06111f]/45 text-cyan-50/60 hover:border-cyan-200/25"
+              )}
+            >
+              OpenAI
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setInferenceProvider("google");
+                setSuccess(null);
+              }}
+              className={cn(
+                "rounded-[8px] border px-4 py-3 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/35",
+                inferenceProvider === "google"
+                  ? "border-cyan-200/45 bg-cyan-300/10 text-cyan-50"
+                  : "border-white/10 bg-[#06111f]/45 text-cyan-50/60 hover:border-cyan-200/25"
+              )}
+            >
+              Google
+            </button>
+          </div>
+
+          {inferenceProvider === "gemma" ? (
+            <label className="mt-4 block space-y-2">
+              <span className="text-sm font-medium text-cyan-50/85">
+                Gemma inference URL
+              </span>
+              <input
+                value={inferenceURL}
+                onChange={(event) => {
+                  setInferenceURL(event.target.value);
+                  setSuccess(null);
+                }}
+                className={textInputClass}
+                placeholder="http://100.89.241.84:5000/inference/drip-hub"
+                autoComplete="off"
+              />
+            </label>
+          ) : (
+            <label className="mt-4 block space-y-2">
+              <span className="text-sm font-medium text-cyan-50/85">
+                {inferenceProvider === "openai" ? "OpenAI" : "Google"} API Key
+              </span>
+              <input
+                type="password"
+                value={inferenceAPIKey}
+                onChange={(event) => {
+                  setInferenceAPIKey(event.target.value);
+                  setSuccess(null);
+                }}
+                className={textInputClass}
+                placeholder={`Enter your ${inferenceProvider === "openai" ? "OpenAI" : "Google"} API key`}
+                autoComplete="off"
+              />
+            </label>
+          )}
+        </section>
+
+        <section className="rounded-[8px] border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-cyan-950/20 backdrop-blur-2xl">
           <h2 className="text-xl font-semibold text-white">
             Deployment behavior
           </h2>
@@ -519,6 +633,16 @@ export default function AgentConfigurator() {
                 tokenMode === "auto"
                   ? "Auto-generated dashboard token"
                   : "Custom dashboard token"
+              }
+            />
+            <SummaryRow
+              label="Inference"
+              value={
+                inferenceProvider === "gemma"
+                  ? "Gemma (Local)"
+                  : inferenceProvider === "openai"
+                  ? "OpenAI"
+                  : "Google"
               }
             />
             <SummaryRow label="Pull latest" value={pullLatest ? "Yes" : "No"} />

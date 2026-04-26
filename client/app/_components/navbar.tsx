@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 export default function Navbar() {
   const navItems = [
     { label: "Compute", href: "/compute" },
+    { label: "Chat", href: "/chat" },
     { label: "Water", href: "/" },
     { label: "Impact", href: "/" },
   ];

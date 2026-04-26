@@ -1,18 +1,19 @@
 services:
-  frontend:
+  water-grid:
     build:
       context: ./water-grid-frontend
       dockerfile: Dockerfile
     ports:
       - "80:80"
-    depends_on:
-      - backend
     restart: unless-stopped
 
-  backend:
+  client:
     build:
-      context: ./server
+      context: ./client
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3001"
+    environment:
+      - DRIP_SERVER_URL=http://localhost:3000
+      - ASUS_INFERENCE_URL=http://100.89.241.84:5000/inference/drip-hub
     restart: unless-stopped
