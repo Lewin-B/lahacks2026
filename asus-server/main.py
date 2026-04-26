@@ -25,10 +25,10 @@ db = mongo_client.drip
 agents_collection = db.agents
 metrics_collection = db.metrics
 
-# vLLM endpoint
-VLLM_URL = "http://localhost:8000/v1/chat/completions"
-# Gemma 4 model - easily configurable via environment variable
-GEMMA_MODEL = os.getenv("GEMMA_MODEL", "google/gemma-4-31B-it")
+# Ollama endpoint (OpenAI-compatible API)
+OLLAMA_URL = "http://localhost:11434/v1/chat/completions"
+# Gemma 4 e4b Q4 model - using Ollama naming convention
+GEMMA_MODEL = os.getenv("GEMMA_MODEL", "gemma4:e4b-it-q4_K_M")
 
 # In-memory state
 telemetry_buffer = deque(maxlen=100)  # Last 100 readings for charts
@@ -140,10 +140,10 @@ async def drip_hub_inference(
     messages: list,
     x_drip_agent_id: str = Header(None)
 ):
-    """Proxy to vLLM with agent attribution"""
+    """Proxy to Ollama with agent attribution"""
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            VLLM_URL,
+            OLLAMA_URL,
             json={
                 "model": GEMMA_MODEL,
                 "messages": messages,

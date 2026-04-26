@@ -1,7 +1,7 @@
 import subprocess
 import asyncio
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 import websockets
 import json
 from dotenv import load_dotenv
@@ -64,7 +64,7 @@ async def monitor_loop(agent_id="global", interval=5):
                     data = {
                         "agent_id": agent_id,
                         "cpu_temp": temp,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                         "water_vapor_pressure": vapor_pressure,
                         "water_production_rate": production_rate
                     }
