@@ -522,6 +522,7 @@ func buildContainerCreateOptions(opts Options, absDataDir string) (client.Contai
 		Config: &container.Config{
 			Env:          env,
 			ExposedPorts: exposedPorts,
+			Labels:       deploymentLabels(opts.Mode),
 		},
 		HostConfig: &container.HostConfig{
 			Binds:        []string{fmt.Sprintf("%s:%s", absDataDir, containerDataDir)},

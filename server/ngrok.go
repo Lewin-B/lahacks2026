@@ -92,6 +92,31 @@ func (m *ngrokTunnelManager) closeExisting(key string) {
 	}
 }
 
+func (m *ngrokTunnelManager) Close(key string) {
+	m.closeExisting(key)
+}
+
+func (m *ngrokTunnelManager) PublicURL(key string) string {
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return ""
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	existing, ok := m.tunnels[key]
+	if !ok || existing.endpoint == nil {
+		return ""
+	}
+
+	publicURL := existing.endpoint.URL()
+	if publicURL == nil {
+		return ""
+	}
+	return publicURL.String()
+}
+
 func closeNgrokTunnel(tunnel managedNgrokTunnel) {
 	if tunnel.endpoint != nil {
 		if err := tunnel.endpoint.Close(); err != nil {

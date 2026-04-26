@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useId, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -263,7 +264,7 @@ export default function AgentConfigurator() {
   return (
     <form
       onSubmit={submitDeployment}
-      className="mt-12 grid gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.8fr)]"
+      className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.8fr)]"
     >
       <div className="space-y-5">
         <section className="rounded-[8px] border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-cyan-950/25 backdrop-blur-2xl">
@@ -600,6 +601,16 @@ export default function AgentConfigurator() {
                 value={`localhost:${success.launcherPort}`}
               />
             </div>
+            <Button
+              asChild
+              variant="outline"
+              className="mt-5 h-10 w-full rounded-[8px] border-emerald-200/20 bg-emerald-300/10 text-emerald-50 hover:bg-emerald-300/15"
+            >
+              <Link href="/compute/agent/deployments">
+                <Server aria-hidden="true" data-icon="inline-start" />
+                View deployments
+              </Link>
+            </Button>
           </section>
         ) : null}
       </aside>

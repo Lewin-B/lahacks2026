@@ -42,9 +42,22 @@ type deployResponse struct {
 	Error     string               `json:"error,omitempty"`
 }
 
+type deploymentsResponse struct {
+	Deployments []picoclawutils.Deployment `json:"deployments,omitempty"`
+	Error       string                     `json:"error,omitempty"`
+}
+
+type deleteDeploymentResponse struct {
+	Deployment picoclawutils.Deployment `json:"deployment,omitempty"`
+	Error      string                   `json:"error,omitempty"`
+}
+
 var (
-	deployPicoclaw = picoclawutils.Deploy
-	exposePicoclaw = newNgrokTunnelManager().Expose
+	deployPicoclaw           = picoclawutils.Deploy
+	listPicoclawDeployments  = picoclawutils.ListDeployments
+	deletePicoclawDeployment = picoclawutils.DeleteDeployment
+	tunnelManager            = newNgrokTunnelManager()
+	exposePicoclaw           = tunnelManager.Expose
 )
 
 type agentStatusResponse struct {
@@ -72,7 +85,7 @@ func listAgentsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Filter for picoclaw containers
 	var picoclawContainers []map[string]interface{}
-	for _, container := range containers {
+	for _, container := range containers.Items {
 		for _, name := range container.Names {
 			if strings.Contains(name, "picoclaw") {
 				picoclawContainers = append(picoclawContainers, map[string]interface{}{
@@ -113,9 +126,16 @@ func agentStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	running := false
+	status := "unknown"
+	if inspect.Container.State != nil {
+		running = inspect.Container.State.Running
+		status = string(inspect.Container.State.Status)
+	}
+
 	writeGenericJSON(w, http.StatusOK, agentStatusResponse{
-		Running: inspect.State.Running,
-		Status:  inspect.State.Status,
+		Running: running,
+		Status:  status,
 	})
 }
 
@@ -148,12 +168,8 @@ func writeErrorJSON(w http.ResponseWriter, status int, message string) {
 	writeGenericJSON(w, status, map[string]string{"error": message})
 }
 
-func writeGenericJSON(w http.ResponseWriter, status int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(payload); err != nil {
-		log.Printf("write json response: %v", err)
-	}
+func writeGenericJSON(w http.ResponseWriter, status int, payload any) {
+	writeJSON(w, status, payload)
 }
 
 func main() {
@@ -167,6 +183,8 @@ func main() {
 	r.Get("/agents", listAgentsHandler)
 	r.Get("/agents/{name}/status", agentStatusHandler)
 	r.Delete("/agents/{name}", deleteAgentHandler)
+	r.Get("/deployments", deploymentsHandler)
+	r.Delete("/deployments/{identifier}", deleteDeploymentHandler)
 	log.Printf("listening on http://%s", addr)
 	err := http.ListenAndServe(addr, r)
 
@@ -225,6 +243,45 @@ func deployHandler(w http.ResponseWriter, r *http.Request) {
 		Result:    result,
 		PublicURL: publicURL,
 		Token:     &token,
+	})
+}
+
+func deploymentsHandler(w http.ResponseWriter, r *http.Request) {
+	deployments, err := listPicoclawDeployments(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, deploymentsResponse{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	for i := range deployments {
+		deployments[i].PublicURL = tunnelManager.PublicURL(deployments[i].Name)
+	}
+
+	writeJSON(w, http.StatusOK, deploymentsResponse{
+		Deployments: deployments,
+	})
+}
+
+func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+	identifier := chi.URLParam(r, "identifier")
+	deployment, err := deletePicoclawDeployment(r.Context(), identifier)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, picoclawutils.ErrDeploymentNotFound) {
+			status = http.StatusNotFound
+		}
+
+		writeJSON(w, status, deleteDeploymentResponse{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	tunnelManager.Close(deployment.Name)
+	writeJSON(w, http.StatusOK, deleteDeploymentResponse{
+		Deployment: deployment,
 	})
 }
 
@@ -290,3 +347,12 @@ func picoclawUpstreamURL(explicitURL string, result picoclawutils.Result) (strin
 
 type deployFunc func(context.Context, picoclawutils.Options) (picoclawutils.Result, error)
 type exposeFunc func(context.Context, string, string) (string, error)
+
+func writeJSON(w http.ResponseWriter, status int, payload any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		log.Printf("write json response: %v", err)
+	}
+}
