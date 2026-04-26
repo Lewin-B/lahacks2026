@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Header
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Header, Body
 from pydantic import BaseModel
 import httpx
 import os
@@ -141,7 +141,7 @@ async def get_metrics():
 
 @app.post("/inference/drip-hub")
 async def drip_hub_inference(
-    messages: list,
+    messages: list = Body(...),
     x_drip_agent_id: str = Header(None)
 ):
     """Proxy to Ollama with agent attribution"""
