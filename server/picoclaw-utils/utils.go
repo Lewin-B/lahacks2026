@@ -519,6 +519,24 @@ func buildContainerCreateOptions(opts Options, absDataDir string) (client.Contai
 		env = append(env, "PICOCLAW_LAUNCHER_TOKEN="+opts.DashboardToken)
 	}
 
+	// Add inference configuration based on provider
+	if opts.InferenceProvider != "" {
+		switch opts.InferenceProvider {
+		case "gemma":
+			if opts.InferenceURL != "" {
+				env = append(env, "OPENAI_API_BASE="+opts.InferenceURL)
+			}
+		case "openai":
+			if opts.InferenceAPIKey != "" {
+				env = append(env, "OPENAI_API_KEY="+opts.InferenceAPIKey)
+			}
+		case "google":
+			if opts.InferenceAPIKey != "" {
+				env = append(env, "GOOGLE_API_KEY="+opts.InferenceAPIKey)
+			}
+		}
+	}
+
 	return client.ContainerCreateOptions{
 		Name:  opts.Name,
 		Image: opts.Image,
