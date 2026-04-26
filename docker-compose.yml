@@ -1,10 +1,20 @@
 services:
-  frontend:
+  water-grid:
     build:
       context: ./water-grid-frontend
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - DRIP_SERVER_URL=http://backend:3000
     depends_on:
       - backend
     restart: unless-stopped
