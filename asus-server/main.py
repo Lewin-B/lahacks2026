@@ -142,12 +142,35 @@ async def get_metrics():
         "uptime_hours": round(uptime, 2)
     }
 
+@app.post("/v1/chat/completions")
+async def openai_compatible_inference(
+    request: InferenceRequest,
+    x_drip_agent_id: str = Header(None)
+):
+    """OpenAI-compatible endpoint for PicoClaw agents"""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            OLLAMA_URL,
+            json={
+                "model": GEMMA_MODEL,
+                "messages": request.messages,
+                "temperature": 0.7
+            },
+            headers={"X-Drip-Agent-ID": x_drip_agent_id or "picoclaw-agent"},
+            timeout=120.0
+        )
+
+        # Increment inference counter
+        accumulated_metrics["total_inferences"] += 1
+
+        return response.json()
+
 @app.post("/inference/drip-hub")
 async def drip_hub_inference(
     request: InferenceRequest,
     x_drip_agent_id: str = Header(None)
 ):
-    """Proxy to Ollama with agent attribution"""
+    """Legacy endpoint - proxy to Ollama with agent attribution"""
     async with httpx.AsyncClient() as client:
         response = await client.post(
             OLLAMA_URL,
