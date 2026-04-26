@@ -314,6 +314,15 @@ func (r deployRequest) options() picoclawutils.Options {
 	if r.DashboardToken != nil {
 		opts.DashboardToken = *r.DashboardToken
 	}
+	if r.InferenceProvider != nil {
+		opts.InferenceProvider = *r.InferenceProvider
+	}
+	if r.InferenceAPIKey != nil {
+		opts.InferenceAPIKey = *r.InferenceAPIKey
+	}
+	if r.InferenceURL != nil {
+		opts.InferenceURL = *r.InferenceURL
+	}
 	if r.Pull != nil {
 		opts.Pull = *r.Pull
 	}
