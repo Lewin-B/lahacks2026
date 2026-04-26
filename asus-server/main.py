@@ -55,10 +55,14 @@ async def lifespan(app: FastAPI):
     # Startup: Load metrics from DB if exists
     stored = await metrics_collection.find_one({"_id": "global"})
     if stored:
+        start_time = stored.get("start_time")
+        # Ensure start_time is offset-aware
+        if start_time and start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=UTC)
         accumulated_metrics.update({
             "total_water_produced_g": stored.get("total_water_produced_g", 0),
             "total_inferences": stored.get("total_inferences", 0),
-            "start_time": stored.get("start_time", datetime.now(UTC))
+            "start_time": start_time or datetime.now(UTC)
         })
 
     # Start background task
