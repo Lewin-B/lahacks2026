@@ -92,6 +92,33 @@ func listAgentsHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func agentStatusHandler(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	ctx := r.Context()
+
+	apiClient, err := client.New(client.FromEnv)
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer apiClient.Close()
+
+	inspect, err := apiClient.ContainerInspect(ctx, name, client.ContainerInspectOptions{})
+	if err != nil {
+		writeGenericJSON(w, http.StatusOK, agentStatusResponse{
+			Running: false,
+			Status:  "not found",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeGenericJSON(w, http.StatusOK, agentStatusResponse{
+		Running: inspect.State.Running,
+		Status:  inspect.State.Status,
+	})
+}
+
 func main() {
 	addr := "localhost:3000"
 	r := chi.NewRouter()
