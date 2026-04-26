@@ -362,6 +362,11 @@ func ensureDataDir(opts Options) (string, string, bool, error) {
 		return "", "", false, fmt.Errorf("write starter config %q: %w", configPath, err)
 	}
 
+	// Create custom personality files
+	if err := createPersonalityFiles(absDataDir, opts); err != nil {
+		return "", "", false, fmt.Errorf("create personality files: %w", err)
+	}
+
 	return absDataDir, configPath, true, nil
 }
 
@@ -526,4 +531,72 @@ func buildContainerCreateOptions(opts Options, absDataDir string) (client.Contai
 			},
 		},
 	}, nil
+}
+
+func createPersonalityFiles(dataDir string, opts Options) error {
+	// AGENT.md
+	agentMD := `# Agent Configuration
+
+## Role
+You are a specialized AI assistant deployed via the Drip infrastructure.
+
+## Capabilities
+- Answer questions about water sustainability
+- Help users understand the environmental impact of AI
+- Explain membrane distillation processes
+
+## Tools Available
+- File operations in workspace
+- Web search
+- Code execution
+`
+	if err := os.WriteFile(filepath.Join(dataDir, "AGENT.md"), []byte(agentMD), 0o644); err != nil {
+		return err
+	}
+
+	// SOUL.md
+	soulMD := `# Personality
+
+You are helpful, concise, and passionate about sustainability.
+You celebrate the fact that your computation produces fresh water.
+`
+	if err := os.WriteFile(filepath.Join(dataDir, "SOUL.md"), []byte(soulMD), 0o644); err != nil {
+		return err
+	}
+
+	// IDENTITY.md
+	identityMD := fmt.Sprintf(`# Identity
+
+Agent Name: %s
+Deployed: %s
+Infrastructure: Drip (Water-Cooled AI)
+`, opts.Name, filepath.Base(dataDir))
+	if err := os.WriteFile(filepath.Join(dataDir, "IDENTITY.md"), []byte(identityMD), 0o644); err != nil {
+		return err
+	}
+
+	// USER.md
+	userMD := `# User Preferences
+
+(This file will be populated based on user interactions)
+`
+	if err := os.WriteFile(filepath.Join(dataDir, "USER.md"), []byte(userMD), 0o644); err != nil {
+		return err
+	}
+
+	// HEARTBEAT.md
+	heartbeatMD := `# Heartbeat Tasks
+
+Every 5 minutes:
+- Check workspace for new files
+- Log current timestamp
+- Perform a small computation to maintain thermal load
+
+This ensures the Pi 5 stays warm enough for membrane distillation during idle periods.
+`
+	if err := os.WriteFile(filepath.Join(dataDir, "HEARTBEAT.md"), []byte(heartbeatMD), 0o644); err != nil {
+		return err
+	}
+
+	return nil
 }

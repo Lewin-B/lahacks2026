@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/moby/moby/client"
 
 	picoclawutils "server/picoclaw-utils"
 )
@@ -46,6 +47,115 @@ var (
 	exposePicoclaw = newNgrokTunnelManager().Expose
 )
 
+type agentStatusResponse struct {
+	Running bool   `json:"running"`
+	Status  string `json:"status"`
+	Error   string `json:"error,omitempty"`
+}
+
+func listAgentsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	apiClient, err := client.New(client.FromEnv)
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer apiClient.Close()
+
+	containers, err := apiClient.ContainerList(ctx, client.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Filter for picoclaw containers
+	var picoclawContainers []map[string]interface{}
+	for _, container := range containers {
+		for _, name := range container.Names {
+			if strings.Contains(name, "picoclaw") {
+				picoclawContainers = append(picoclawContainers, map[string]interface{}{
+					"id":      container.ID,
+					"name":    strings.TrimPrefix(name, "/"),
+					"image":   container.Image,
+					"status":  container.Status,
+					"state":   container.State,
+					"created": container.Created,
+				})
+			}
+		}
+	}
+
+	writeGenericJSON(w, http.StatusOK, map[string]interface{}{
+		"agents": picoclawContainers,
+	})
+}
+
+func agentStatusHandler(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	ctx := r.Context()
+
+	apiClient, err := client.New(client.FromEnv)
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer apiClient.Close()
+
+	inspect, err := apiClient.ContainerInspect(ctx, name, client.ContainerInspectOptions{})
+	if err != nil {
+		writeGenericJSON(w, http.StatusOK, agentStatusResponse{
+			Running: false,
+			Status:  "not found",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	writeGenericJSON(w, http.StatusOK, agentStatusResponse{
+		Running: inspect.State.Running,
+		Status:  inspect.State.Status,
+	})
+}
+
+func deleteAgentHandler(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	ctx := r.Context()
+
+	apiClient, err := client.New(client.FromEnv)
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer apiClient.Close()
+
+	_, err = apiClient.ContainerRemove(ctx, name, client.ContainerRemoveOptions{
+		Force: true,
+	})
+	if err != nil {
+		writeErrorJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeGenericJSON(w, http.StatusOK, map[string]string{
+		"status": "deleted",
+		"name":   name,
+	})
+}
+
+func writeErrorJSON(w http.ResponseWriter, status int, message string) {
+	writeGenericJSON(w, status, map[string]string{"error": message})
+}
+
+func writeGenericJSON(w http.ResponseWriter, status int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		log.Printf("write json response: %v", err)
+	}
+}
+
 func main() {
 	addr := "localhost:3000"
 	r := chi.NewRouter()
@@ -54,6 +164,9 @@ func main() {
 		w.Write([]byte("welcome"))
 	})
 	r.Post("/deploy", deployHandler)
+	r.Get("/agents", listAgentsHandler)
+	r.Get("/agents/{name}/status", agentStatusHandler)
+	r.Delete("/agents/{name}", deleteAgentHandler)
 	log.Printf("listening on http://%s", addr)
 	err := http.ListenAndServe(addr, r)
 
@@ -69,7 +182,7 @@ func deployHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, deployResponse{
+		writeGenericJSON(w, http.StatusBadRequest, deployResponse{
 			Error: "invalid request body: " + err.Error(),
 		})
 		return
@@ -77,7 +190,7 @@ func deployHandler(w http.ResponseWriter, r *http.Request) {
 
 	var extra json.RawMessage
 	if err := decoder.Decode(&extra); err != io.EOF {
-		writeJSON(w, http.StatusBadRequest, deployResponse{
+		writeGenericJSON(w, http.StatusBadRequest, deployResponse{
 			Error: "request body must contain a single JSON object",
 		})
 		return
@@ -85,7 +198,7 @@ func deployHandler(w http.ResponseWriter, r *http.Request) {
 
 	result, err := deployPicoclaw(r.Context(), req.options())
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, deployResponse{
+		writeGenericJSON(w, http.StatusInternalServerError, deployResponse{
 			Error: err.Error(),
 		})
 		return
@@ -93,7 +206,7 @@ func deployHandler(w http.ResponseWriter, r *http.Request) {
 
 	upstreamURL, err := picoclawUpstreamURL(req.PicoclawURL, result)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, deployResponse{
+		writeGenericJSON(w, http.StatusInternalServerError, deployResponse{
 			Error: err.Error(),
 		})
 		return
@@ -101,14 +214,14 @@ func deployHandler(w http.ResponseWriter, r *http.Request) {
 
 	publicURL, err := exposePicoclaw(r.Context(), result.ContainerName, upstreamURL)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, deployResponse{
+		writeGenericJSON(w, http.StatusInternalServerError, deployResponse{
 			Error: err.Error(),
 		})
 		return
 	}
 
 	token := result.Options.DashboardToken
-	writeJSON(w, http.StatusOK, deployResponse{
+	writeGenericJSON(w, http.StatusOK, deployResponse{
 		Result:    result,
 		PublicURL: publicURL,
 		Token:     &token,
@@ -177,12 +290,3 @@ func picoclawUpstreamURL(explicitURL string, result picoclawutils.Result) (strin
 
 type deployFunc func(context.Context, picoclawutils.Options) (picoclawutils.Result, error)
 type exposeFunc func(context.Context, string, string) (string, error)
-
-func writeJSON(w http.ResponseWriter, status int, payload deployResponse) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	if err := json.NewEncoder(w).Encode(payload); err != nil {
-		log.Printf("write json response: %v", err)
-	}
-}
